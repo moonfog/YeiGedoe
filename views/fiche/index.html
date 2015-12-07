@@ -1,0 +1,23 @@
+{{response.files.append(URL(r=request,c='static',f='js/jspdf.js'))}}
+{{extend 'layout.html'}}
+<script type='text/javascript'>
+
+
+
+
+</script>
+<h2>Fiche van {{=record.first_name}} {{=record.family_name}} </h2>
+<h3>Gesprekken : </h3>
+{{items = talks}}
+<ul>
+{{for item in items:}}<li>{{=item.date_talk}} {{=item.type_of_talk}} door {{=item.registrator.first_name}}</li>{{pass}}
+</ul>
+
+
+<h3>Axies : </h3>
+{{items = actions}}
+<ul>
+{{for item in items:}}<li>{{=item.competence.name}} begeleidt door {{=item.guidance}} gestart op {{=item.startdate}} richtdatum : {{=item.date_to_aim}}</li>{{pass}}
+</ul>
+
+<button onclick="pdfFromHTML()" class="button">Run Code</button></p></div></div>

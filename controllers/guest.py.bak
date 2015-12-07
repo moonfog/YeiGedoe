@@ -1,0 +1,77 @@
+def checkNationalNumber(national_number):
+   isRijksRegisterNummer = False
+   rr = national_number
+
+    if(len(rr) == 11) : 
+       if(int(rr[0][0]) == 0): 
+        rr = ''.join(('2',rr))
+       else :
+        rr = rr
+        
+       checkDigit = int(rr[-2:])
+       rr = rr[:-2]
+       rr_rest97 = int(float(rr) / 97.0)
+
+       rr_maal97 = rr_rest97 * 97
+
+       testcijfer = int(rr) - rr_maal97 
+
+       if ((97 - testcijfer) == checkDigit):
+            isRijksRegisterNummer = True
+            return isRijksRegisterNummer
+       else :
+            return isRijksRegisterNummer
+    
+    else: 
+       return isRijksRegisterNummer
+
+def check(form):
+   if (checkNationalNumber(form.vars.national_number)):
+       form.errors.national_number = "Ongeldig rijksregisternummer"
+
+@auth.requires_login()
+def new():
+    fields = ['first_name','family_name','birth_year','sex','national_number','gsmnummer','email']
+    form = SQLFORM(db.guest,fields=fields)
+    if form.process(onvalidation=check).accepted:
+        response.flash = 'form accepted'
+        redirect(URL(r=request,f='overview'))
+    elif form.errors :
+        response.flash = 'form has errors'
+    else:
+        response.flash = 'please fill out the form'
+
+    return dict(form=form)
+
+@auth.requires_login()
+def overview():
+    fields = [db.guest.first_name,db.guest.family_name,db.guest.age]
+    grid = SQLFORM.grid(db.guest,fields=fields,deletable=False,editable=False,details=False,paginate=10,create=False,csv=False,orderby=[~db.guest.id],
+        links = [lambda row:A(T('Details'),_href=URL("guest","details",args=[row.id])),
+                 lambda row:A(T('Competences'),_href=URL("guest_competence","overview",args=[row.id])),
+				 lambda row:A(T('Talks'),_href=URL("talk","overview",args=[row.id])),
+                 lambda row:A(T('Things to do'),_href=URL("things_to_do","overview",args=[row.id])),
+                 lambda row:A(T('Difficulties'),_href=URL("difficultie","overview",args=[row.id])),
+                 ])
+    return dict(form=grid)
+
+@auth.requires_login()
+def details():
+    #if len(request.args)!=0:
+    session.guestID = request.args[0]
+
+    record = db(db.guest.id==session.guestID).select().first()
+        #fields = ['name' , 'sex', 'birth_year','nationality','origin','education']
+    form = SQLFORM(db.guest,record,showid = False,submit_button = T('Update'))
+    #form[0][0].append(TAG.INPUT(_value=T('Cancel'),_type="button",_onclick="window.location='%s';"%URL(r=request,f='overview')))
+
+    if form.process().accepted:
+        response.flash = T('form accepted')
+        redirect(URL(r=request,f='overview'))
+
+    elif form.errors:
+        response.flash = T('form has errors')
+    else:
+        response.flash = T('Update Guest')
+
+    return dict(form=form)
